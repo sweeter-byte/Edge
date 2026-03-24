@@ -316,6 +316,8 @@ def forward_conditional(
             _visual_dtype = _visual.get_dtype() if hasattr(_visual, "get_dtype") else next(_visual.parameters()).dtype
             pixel_values = pixel_values.type(_visual_dtype)
             image_embeds = _visual(pixel_values, grid_thw=image_grid_thw)
+            if not isinstance(image_embeds, torch.Tensor):
+                image_embeds = image_embeds.last_hidden_state
             n_image_tokens = (input_ids == self.config.image_token_id).sum().item()
             n_image_features = image_embeds.shape[0]
             if n_image_tokens != n_image_features:
@@ -335,6 +337,8 @@ def forward_conditional(
             _visual_dtype = _visual.get_dtype() if hasattr(_visual, "get_dtype") else next(_visual.parameters()).dtype
             pixel_values_videos = pixel_values_videos.type(_visual_dtype)
             video_embeds = _visual(pixel_values_videos, grid_thw=video_grid_thw)
+            if not isinstance(video_embeds, torch.Tensor):
+                video_embeds = video_embeds.last_hidden_state
             n_video_tokens = (input_ids == self.config.video_token_id).sum().item()
             n_video_features = video_embeds.shape[0]
             if n_video_tokens != n_video_features:
