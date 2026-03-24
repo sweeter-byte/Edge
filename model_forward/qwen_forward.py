@@ -326,7 +326,7 @@ def forward_conditional(
                 # the feature count with the number of image tokens.
                 _merger = getattr(_visual, "merger", None)
                 if _merger is not None:
-                    image_embeds = _merger(image_embeds, grid_thw=image_grid_thw)
+                    image_embeds = _merger(image_embeds)
                     n_image_features = image_embeds.shape[0]
                 if n_image_tokens != n_image_features:
                     raise ValueError(
@@ -352,7 +352,7 @@ def forward_conditional(
             if n_video_tokens != n_video_features:
                 _merger = getattr(_visual, "merger", None)
                 if _merger is not None:
-                    video_embeds = _merger(video_embeds, grid_thw=video_grid_thw)
+                    video_embeds = _merger(video_embeds)
                     n_video_features = video_embeds.shape[0]
                 if n_video_tokens != n_video_features:
                     raise ValueError(
