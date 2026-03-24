@@ -301,9 +301,13 @@ def forward_conditional(
         _inner_model = _inner_model.language_model
     _embed_tokens = _inner_model.embed_tokens
 
-    # Qwen2-VL / older Qwen2.5-VL: self.visual
-    # Newer Qwen2.5-VL (transformers >= 4.52): self.visual_model
-    _visual = getattr(self, "visual", None) or getattr(self, "visual_model", None)
+    # Qwen2-VL: self.visual
+    # Qwen2.5-VL: may be self.visual, self.visual_model, or self.model.visual
+    _visual = (
+        getattr(self, "visual", None)
+        or getattr(self, "visual_model", None)
+        or getattr(self.model, "visual", None)
+    )
 
     if inputs_embeds is None:
         inputs_embeds = _embed_tokens(input_ids)
