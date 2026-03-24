@@ -154,7 +154,7 @@ def forward(
     if (input_ids is None) ^ (inputs_embeds is not None):
         raise ValueError("You must specify exactly one of input_ids or inputs_embeds")
 
-    if self.gradient_checkpointing and self.training and use_cache:
+    if getattr(self, "gradient_checkpointing", False) and self.training and use_cache:
         use_cache = False
 
     if inputs_embeds is None:
@@ -207,7 +207,7 @@ def forward(
 
         need_attn_this_layer = output_attentions and (layer_idx <= max_attn_layer)
 
-        if self.gradient_checkpointing and self.training:
+        if getattr(self, "gradient_checkpointing", False) and self.training:
             layer_outputs = self._gradient_checkpointing_func(
                 decoder_layer.__call__,
                 hidden_states, causal_mask, position_ids, past_key_values,
