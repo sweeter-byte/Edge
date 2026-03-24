@@ -321,9 +321,17 @@ def forward_conditional(
             n_image_tokens = (input_ids == self.config.image_token_id).sum().item()
             n_image_features = image_embeds.shape[0]
             if n_image_tokens != n_image_features:
-                raise ValueError(
-                    f"Image features and image tokens do not match: tokens: {n_image_tokens}, features {n_image_features}"
-                )
+                # In some transformers versions the vision model returns pre-merger
+                # features.  Apply the spatial merger when available to reconcile
+                # the feature count with the number of image tokens.
+                _merger = getattr(_visual, "merger", None)
+                if _merger is not None:
+                    image_embeds = _merger(image_embeds, grid_thw=image_grid_thw)
+                    n_image_features = image_embeds.shape[0]
+                if n_image_tokens != n_image_features:
+                    raise ValueError(
+                        f"Image features and image tokens do not match: tokens: {n_image_tokens}, features {n_image_features}"
+                    )
             image_mask = (
                 (input_ids == self.config.image_token_id)
                 .unsqueeze(-1)
@@ -342,9 +350,14 @@ def forward_conditional(
             n_video_tokens = (input_ids == self.config.video_token_id).sum().item()
             n_video_features = video_embeds.shape[0]
             if n_video_tokens != n_video_features:
-                raise ValueError(
-                    f"Video features and video tokens do not match: tokens: {n_video_tokens}, features {n_video_features}"
-                )
+                _merger = getattr(_visual, "merger", None)
+                if _merger is not None:
+                    video_embeds = _merger(video_embeds, grid_thw=video_grid_thw)
+                    n_video_features = video_embeds.shape[0]
+                if n_video_tokens != n_video_features:
+                    raise ValueError(
+                        f"Video features and video tokens do not match: tokens: {n_video_tokens}, features {n_video_features}"
+                    )
             video_mask = (
                 (input_ids == self.config.video_token_id)
                 .unsqueeze(-1)
