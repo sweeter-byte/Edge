@@ -301,12 +301,16 @@ def forward_conditional(
         _inner_model = _inner_model.language_model
     _embed_tokens = _inner_model.embed_tokens
 
+    # Qwen2-VL / older Qwen2.5-VL: self.visual
+    # Newer Qwen2.5-VL (transformers >= 4.52): self.visual_model
+    _visual = getattr(self, "visual", None) or getattr(self, "visual_model", None)
+
     if inputs_embeds is None:
         inputs_embeds = _embed_tokens(input_ids)
 
         if pixel_values is not None:
-            pixel_values = pixel_values.type(self.visual.get_dtype())
-            image_embeds = self.visual(pixel_values, grid_thw=image_grid_thw)
+            pixel_values = pixel_values.type(_visual.get_dtype())
+            image_embeds = _visual(pixel_values, grid_thw=image_grid_thw)
             n_image_tokens = (input_ids == self.config.image_token_id).sum().item()
             n_image_features = image_embeds.shape[0]
             if n_image_tokens != n_image_features:
@@ -323,8 +327,8 @@ def forward_conditional(
             inputs_embeds = inputs_embeds.masked_scatter(image_mask, image_embeds)
 
         if pixel_values_videos is not None:
-            pixel_values_videos = pixel_values_videos.type(self.visual.get_dtype())
-            video_embeds = self.visual(pixel_values_videos, grid_thw=video_grid_thw)
+            pixel_values_videos = pixel_values_videos.type(_visual.get_dtype())
+            video_embeds = _visual(pixel_values_videos, grid_thw=video_grid_thw)
             n_video_tokens = (input_ids == self.config.video_token_id).sum().item()
             n_video_features = video_embeds.shape[0]
             if n_video_tokens != n_video_features:
