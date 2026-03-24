@@ -313,7 +313,8 @@ def forward_conditional(
         inputs_embeds = _embed_tokens(input_ids)
 
         if pixel_values is not None:
-            pixel_values = pixel_values.type(_visual.get_dtype())
+            _visual_dtype = _visual.get_dtype() if hasattr(_visual, "get_dtype") else next(_visual.parameters()).dtype
+            pixel_values = pixel_values.type(_visual_dtype)
             image_embeds = _visual(pixel_values, grid_thw=image_grid_thw)
             n_image_tokens = (input_ids == self.config.image_token_id).sum().item()
             n_image_features = image_embeds.shape[0]
@@ -331,7 +332,8 @@ def forward_conditional(
             inputs_embeds = inputs_embeds.masked_scatter(image_mask, image_embeds)
 
         if pixel_values_videos is not None:
-            pixel_values_videos = pixel_values_videos.type(_visual.get_dtype())
+            _visual_dtype = _visual.get_dtype() if hasattr(_visual, "get_dtype") else next(_visual.parameters()).dtype
+            pixel_values_videos = pixel_values_videos.type(_visual_dtype)
             video_embeds = _visual(pixel_values_videos, grid_thw=video_grid_thw)
             n_video_tokens = (input_ids == self.config.video_token_id).sum().item()
             n_video_features = video_embeds.shape[0]
